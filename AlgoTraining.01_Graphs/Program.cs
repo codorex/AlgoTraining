@@ -3,6 +3,7 @@ using AlgoTraining._01_Graphs.Implementations;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AlgoTraining._01_Graphs
 {
@@ -16,17 +17,26 @@ namespace AlgoTraining._01_Graphs
 
         private const string NotRelatedResultMessage = "No";
 
+        private const string InputTokenDelimiter = ",";
+
+        private const string InputTerminator = "@";
+
         public static void Main()
         {
             _graph = new Graph<string>();
 
-            _relationshipValidator = new IterativeGraphRelationshipValidator<string>(_graph);
+            _relationshipValidator = 
+                new IterativeGraphRelationshipValidator<string>(_graph);
 
-            _graph.Connect("A", "B");
-            _graph.Connect("B", "F");
-            _graph.Connect("F", "A");
-            _graph.Connect("B", "C");
-            _graph.Connect("C", "D");
+            List<string> companies = 
+                ReadCompanies();
+
+            Dictionary<string, List<string>> companyRelationships = 
+                ReadCompanyRelationships();
+
+            foreach (var company in companyRelationships.Keys)
+                foreach (var child in companyRelationships[company])
+                    _graph.Connect(company, child);
 
             ReadCompaniesToValidate()
                 ?.ForEach(OutputResult);
@@ -34,22 +44,75 @@ namespace AlgoTraining._01_Graphs
 
         private static List<string> ReadCompanies()
         {
-            throw new NotImplementedException();
-        }
+            Console.WriteLine(
+                "Please, enter the list of companies in the following format: \"A, B, C, D\" ... ");
 
-        private static Dictionary<string, string> ReadCompanyRelationships()
-        {
-            throw new NotImplementedException();
-        }
+            string input = Console.ReadLine();
 
-        private static List<KeyValuePair<string, string>> ReadCompaniesToValidate() =>
-            new List<KeyValuePair<string, string>>
+            if (string.IsNullOrEmpty(input))
             {
-                new KeyValuePair<string, string>("A", "B"),
-                new KeyValuePair<string, string>("A", "C"),
-                new KeyValuePair<string, string>("A", "D"),
-                new KeyValuePair<string, string>("D", "B")
-            };
+                return new List<string>();
+            }
+
+            return input
+                .Split(InputTokenDelimiter)
+                .Select(x => x.Trim())
+                .ToList();
+        }
+
+        private static Dictionary<string, List<string>> ReadCompanyRelationships()
+        {
+            Console.WriteLine(
+                "Please, describe the relationships between companies " +
+                "in the following format: \"Parent, Subsidiary\".");
+
+            Console.WriteLine(
+                $"Enter \"{InputTerminator}\" to complete your list.");
+
+            return ReadListOfPairs()
+                .GroupBy(x => x.Key)
+                .ToDictionary(
+                    gr => gr.Key, 
+                    gr => gr.Select(x => x.Value).ToList());
+        }
+
+        private static List<KeyValuePair<string, string>> ReadCompaniesToValidate()
+        {
+            Console.WriteLine(
+                "Please, enter the companies you wish to validate the relationship of in pairs " +
+                "in the following format: \"A, B\".");
+
+            Console.WriteLine(
+                $"Enter \"{InputTerminator}\" to complete your list.");
+
+            return ReadListOfPairs().ToList();
+        }
+
+        private static IEnumerable<KeyValuePair<string, string>> ReadListOfPairs()
+        {
+            string input;
+
+            while ((input = Console.ReadLine()) != InputTerminator)
+            {
+                if (string.IsNullOrEmpty(input))
+                {
+                    continue;
+                }
+
+                string[] tokens = input.Split(InputTokenDelimiter);
+
+                // If the input is not a pair of strings, throw.
+                if (tokens.Length != 2)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+
+                string parent = tokens[0].Trim();
+                string child = tokens[1].Trim();
+
+                yield return new KeyValuePair<string, string>(parent, child);
+            }
+        }
 
         private static void OutputResult(KeyValuePair<string, string> companyPair)
         {

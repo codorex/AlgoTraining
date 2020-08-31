@@ -37,6 +37,7 @@ namespace AlgoTraining._01_Graphs.Implementations
             while (verticesQueue.Count > 0)
             {
                 current = verticesQueue.Dequeue();
+                visitedVertices.Remove(current);
 
                 foreach (TVertex vertex in _graph[current])
                 {

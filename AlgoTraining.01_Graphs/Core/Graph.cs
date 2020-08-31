@@ -41,7 +41,10 @@ namespace AlgoTraining._01_Graphs.Core
             if (!_map.ContainsKey(dest))
                 _map.Add(dest, new List<TVertex>());
 
-            this[src].Add(dest);
+            if (!this[src].Contains(dest))
+            {
+                this[src].Add(dest);
+            }
         }
 
         public void Disconnect(TVertex src, TVertex dest)
